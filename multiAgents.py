@@ -87,36 +87,43 @@ class ReflexAgent(Agent):
 
         foodScore = 1000
         ghostScore = -1000
-
+        distToFood = 0
+        distToGhost = 0
+        newScore = successorGameState.getScore()
         for food in newFood.asList():
-            distToFood = manhattanDistance(newPos, food)
-            if distToFood < foodScore:
-                foodScore = distToFood
+            if manhattanDistance(newPos, food) != 0:
+                distToFood += 1/manhattanDistance(newPos, food)
+            # if distToFood < foodScore:
+            #     foodScore = distToFood
 
         # print("food score: ", foodScore)
 
         for state in newGhostStates:
-            distToGhost = manhattanDistance(newPos, state.getPosition())
-            if distToGhost > ghostScore and distToGhost > foodScore:
-                ghostScore = distToGhost
-            if distToGhost == 1:
-                newScore = -1000
-                return newScore
+            if manhattanDistance(newPos, state.getPosition()) != 0:
+                distToGhost += 1/manhattanDistance(newPos, state.getPosition())
+            # if distToGhost > ghostScore and distToGhost > foodScore:
+            #     ghostScore = distToGhost
+            # if distToGhost == 1:
+            #     newScore = -1000
+            #     return newScore
 
         # print("ghost score: ", ghostScore)
-
-        newScore = (successorGameState.getScore() + (1 / foodScore)
-                    * ghostScore + pow(1/foodScore, 3))
+        if distToFood != 0:
+            newScore += distToFood
+        if distToGhost != 0:
+            newScore -= distToGhost
+        # newScore = (successorGameState.getScore() - (1 / ghostScore)
+        #              + 1/foodScore)
         # print("new score: ", newScore)
-        for cap in successorGameState.getCapsules():
-            distToCap = manhattanDistance(newPos, cap)
-            if distToCap < newScore and distToCap < foodScore:
-                newScore = newScore + distToCap
+        # for cap in successorGameState.getCapsules():
+        #     distToCap = manhattanDistance(newPos, cap)
+        #     if distToCap < newScore and distToCap < foodScore:
+        #         newScore = newScore + distToCap
 
-        for times in newScaredTimes:
-            if times > 0:
-                if ghostScore != 0:
-                    newScore = 1/ghostScore
+        # for times in newScaredTimes:
+        #     if times > 0:
+        #         if ghostScore != 0:
+        #             newScore = 1/ghostScore
 
         # if ghostScore > foodScore:
 
@@ -186,33 +193,76 @@ class MinimaxAgent(MultiAgentSearchAgent):
         Returns whether or not the game state is a losing state
         """
         "*** YOUR CODE HERE ***"
-        pacmanAgentNum = 0
-        gameState.getNumAgents()
-        gameState.isWin()
-        gameState.isLose()
-        # Collect legal moves and successor states
-        legalMoves = gameState.getLegalActions(pacmanAgentNum)
 
-        # Choose one of the best actions
-        scores = self.evaluationFunction(gameState)
-        print(scores)
-        # successors = gameState.generateSuccessor(pacmanAgentNum, scores)
-        return "Stop"
-    
-    def minimaxValue(state):
-        if state
-        
-    def maxValue(state):
-        value = -1000
-        for suc in state.generateSuccessor():
-            value = max(value, minValue(suc))
-        return value
-    
-    def minValue(state):
-        value = -1000
-        for suc in state.generateSuccessor():
-            value = max(value, maxValue(suc))
-        return value
+        pacmanAgentNum = self.index
+
+        def minimaxValue(state):
+            self.value = 27
+            self.depthCount = 0
+            self.newAction = Directions.STOP
+            self.numAgents = state.getNumAgents()
+            self.legalMoves = state.getLegalActions(self.index)
+            self.agent = self.index
+
+            def maxValue(state):
+                print("agent: ", self.agent, " in max")
+                if state.isWin() or state.isLose() or self.depth == self.depthCount:
+                    print("exiting from max with eval func", self.evaluationFunction(state))
+                    return self.evaluationFunction(state)
+                maxVal = -1000
+                tempAgent = self.agent
+                self.agent += 1
+                for action in state.getLegalActions(tempAgent):
+                    successor = state.generateSuccessor(tempAgent, action)
+                    tempVal = max(maxVal, minValue(successor))                    
+                    if tempVal > maxVal:
+                        self.newAction = action
+                        maxVal = tempVal       
+                print("in max value:", maxVal, "in max depth:", self.depthCount, "with action", self.newAction)
+                return maxVal
+            
+            def minValue(state):
+                print("agent: ", self.agent, " in min")
+                if state.isWin() or state.isLose() or self.depth == self.depthCount:
+                    print("exiting from min with eval func:", self.evaluationFunction(state))
+                    print("win?", state.isWin(), "lose?", state.isLose())
+                    return self.evaluationFunction(state)
+                minVal = 1000
+                tempAgent = self.agent
+                if self.agent + 1 == self.numAgents:
+                    self.depthCount += 1
+                    self.agent = self.index
+                    for action in state.getLegalActions(tempAgent):
+                        successor = state.generateSuccessor(tempAgent, action)
+                        tempVal = min(minVal, maxValue(successor))
+                        if tempVal < minVal:
+                            self.newAction = action
+                            minVal = tempVal                          
+                else:
+                    self.agent += 1
+                    for action in state.getLegalActions(tempAgent):
+                        successor = state.generateSuccessor(tempAgent, action)
+                        tempVal = min(minVal, minValue(successor))
+                        if tempVal < minVal:
+                            self.newAction = action
+                            minVal = tempVal                               
+                print("in min value:", minVal, "in min depth:", self.depthCount, "with action", self.newAction)
+                return minVal
+                        
+            if state.isWin():
+                return self.newAction
+            if self.agent == 0:
+                self.value = maxValue(state)
+                return self.newAction
+            else:
+                self.value = minValue(state)
+                return self.newAction   
+
+        print(str(gameState))
+        action = minimaxValue(gameState)
+        print("pacmanAgentNum", pacmanAgentNum, " ", action)
+
+        return action
 
 class AlphaBetaAgent(MultiAgentSearchAgent):
     """
