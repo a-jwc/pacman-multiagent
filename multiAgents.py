@@ -245,10 +245,10 @@ class MinimaxAgent(MultiAgentSearchAgent):
                         tempVal = min(minVal, minValue(successor))
                         if tempVal < minVal:
                             self.newAction = action
-                            minVal = tempVal                               
+                            minVal = tempVal
                 print("in min value:", minVal, "in min depth:", self.depthCount, "with action", self.newAction)
                 return minVal
-                        
+
             if state.isWin():
                 return self.newAction
             if self.agent == 0:
@@ -256,7 +256,7 @@ class MinimaxAgent(MultiAgentSearchAgent):
                 return self.newAction
             else:
                 self.value = minValue(state)
-                return self.newAction   
+                return self.newAction
 
         print(str(gameState))
         action = minimaxValue(gameState)
