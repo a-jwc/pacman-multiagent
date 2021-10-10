@@ -16,6 +16,7 @@ from util import manhattanDistance
 from game import Directions
 import random
 import util
+import time
 
 from game import Agent
 
@@ -207,24 +208,27 @@ class MinimaxAgent(MultiAgentSearchAgent):
             def maxValue(state):
                 print("agent: ", self.agent, " in max")
                 if state.isWin() or state.isLose() or self.depth == self.depthCount:
-                    print("exiting from max with eval func", self.evaluationFunction(state))
+                    print("exiting from max with eval func",
+                          self.evaluationFunction(state))
                     return self.evaluationFunction(state)
                 maxVal = -1000
                 tempAgent = self.agent
                 self.agent += 1
                 for action in state.getLegalActions(tempAgent):
                     successor = state.generateSuccessor(tempAgent, action)
-                    tempVal = max(maxVal, minValue(successor))                    
+                    tempVal = minValue(successor)
                     if tempVal > maxVal:
                         self.newAction = action
-                        maxVal = tempVal       
-                print("in max value:", maxVal, "in max depth:", self.depthCount, "with action", self.newAction)
+                        maxVal = tempVal
+                print("in max value:", maxVal, "in max depth:",
+                      self.depthCount, "with action", self.newAction)
                 return maxVal
-            
+
             def minValue(state):
                 print("agent: ", self.agent, " in min")
                 if state.isWin() or state.isLose() or self.depth == self.depthCount:
-                    print("exiting from min with eval func:", self.evaluationFunction(state))
+                    print("exiting from min with eval func:",
+                          self.evaluationFunction(state))
                     print("win?", state.isWin(), "lose?", state.isLose())
                     return self.evaluationFunction(state)
                 minVal = 1000
@@ -234,19 +238,20 @@ class MinimaxAgent(MultiAgentSearchAgent):
                     self.agent = self.index
                     for action in state.getLegalActions(tempAgent):
                         successor = state.generateSuccessor(tempAgent, action)
-                        tempVal = min(minVal, maxValue(successor))
+                        tempVal = maxValue(successor)
                         if tempVal < minVal:
                             self.newAction = action
-                            minVal = tempVal                          
+                            minVal = tempVal
                 else:
                     self.agent += 1
                     for action in state.getLegalActions(tempAgent):
                         successor = state.generateSuccessor(tempAgent, action)
-                        tempVal = min(minVal, minValue(successor))
+                        tempVal = minValue(successor)
                         if tempVal < minVal:
                             self.newAction = action
                             minVal = tempVal
-                print("in min value:", minVal, "in min depth:", self.depthCount, "with action", self.newAction)
+                print("in min value:", minVal, "in min depth:",
+                      self.depthCount, "with action", self.newAction)
                 return minVal
 
             if state.isWin():
@@ -263,6 +268,7 @@ class MinimaxAgent(MultiAgentSearchAgent):
         print("pacmanAgentNum", pacmanAgentNum, " ", action)
 
         return action
+
 
 class AlphaBetaAgent(MultiAgentSearchAgent):
     """
@@ -290,8 +296,53 @@ class ExpectimaxAgent(MultiAgentSearchAgent):
         legal moves.
         """
         "*** YOUR CODE HERE ***"
-        util.raiseNotDefined()
+        self.agent = self.index
+        self.depthCount = 0
+        self.newAction = Directions.STOP
+        self.numAgents = gameState.getNumAgents()
+        self.legalMoves = gameState.getLegalActions(self.index)
 
+        def value(state, agent, depth):
+            if state.isWin() or state.isLose() or self.depth == depth:
+                return self.evaluationFunction(state)
+            elif agent == 0:
+                # time.sleep(1)
+                return maxValue(state, agent, depth)
+            else:
+                return expValue(state, agent, depth)
+
+        def maxValue(state, agent, depth):
+            print("agent: ", agent, " in max")
+            maxVal = -1000
+            for action in state.getLegalActions(agent):
+                successor = state.generateSuccessor(agent, action)
+                tempVal = value(successor, agent + 1, depth)
+                if tempVal > maxVal:
+                    self.newAction = action
+                    maxVal = tempVal
+            print("in max value:", maxVal, "in max depth:",
+                  depth, "with action", self.newAction)
+            return maxVal
+
+        def expValue(state, agent, depth):
+            print("agent: ", agent, " in exp")
+            expVal = 0
+            if agent + 1 == self.numAgents:
+                tempAgent = 0
+                depth += 1
+            else:
+                tempAgent = agent + 1
+            for action in state.getLegalActions(agent):
+                successor = state.generateSuccessor(agent, action)
+                p = 1/len(state.getLegalActions(agent))
+                expVal += p * value(successor, tempAgent, depth)
+            print("agent", agent, "in exp value:", expVal, "in exp depth:",
+                  depth, "with action", self.newAction)
+            return expVal
+        
+        print(str(gameState))
+        value(gameState, self.agent, self.depthCount)
+        return self.newAction
 
 def betterEvaluationFunction(currentGameState):
     """
