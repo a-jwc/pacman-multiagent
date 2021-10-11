@@ -206,10 +206,10 @@ class MinimaxAgent(MultiAgentSearchAgent):
             self.agent = self.index
 
             def maxValue(state):
-                print("agent: ", self.agent, " in max")
+                # print("agent: ", self.agent, " in max")
                 if state.isWin() or state.isLose() or self.depth == self.depthCount:
-                    print("exiting from max with eval func",
-                          self.evaluationFunction(state))
+                    # print("exiting from max with eval func",
+                        #   self.evaluationFunction(state))
                     return self.evaluationFunction(state)
                 maxVal = -1000
                 tempAgent = self.agent
@@ -220,16 +220,16 @@ class MinimaxAgent(MultiAgentSearchAgent):
                     if tempVal > maxVal:
                         self.newAction = action
                         maxVal = tempVal
-                print("in max value:", maxVal, "in max depth:",
-                      self.depthCount, "with action", self.newAction)
+                # print("in max value:", maxVal, "in max depth:",
+                    # #   self.depthCount, "with action", self.newAction)
                 return maxVal
 
             def minValue(state):
-                print("agent: ", self.agent, " in min")
+                # print("agent: ", self.agent, " in min")
                 if state.isWin() or state.isLose() or self.depth == self.depthCount:
-                    print("exiting from min with eval func:",
-                          self.evaluationFunction(state))
-                    print("win?", state.isWin(), "lose?", state.isLose())
+                    # print("exiting from min with eval func:",
+                        #   self.evaluationFunction(state))
+                    # print("win?", state.isWin(), "lose?", state.isLose())
                     return self.evaluationFunction(state)
                 minVal = 1000
                 tempAgent = self.agent
@@ -240,7 +240,6 @@ class MinimaxAgent(MultiAgentSearchAgent):
                         successor = state.generateSuccessor(tempAgent, action)
                         tempVal = maxValue(successor)
                         if tempVal < minVal:
-                            self.newAction = action
                             minVal = tempVal
                 else:
                     self.agent += 1
@@ -248,10 +247,9 @@ class MinimaxAgent(MultiAgentSearchAgent):
                         successor = state.generateSuccessor(tempAgent, action)
                         tempVal = minValue(successor)
                         if tempVal < minVal:
-                            self.newAction = action
                             minVal = tempVal
-                print("in min value:", minVal, "in min depth:",
-                      self.depthCount, "with action", self.newAction)
+                # print("in min value:", minVal, "in min depth:",
+                    #   self.depthCount, "with action", self.newAction)
                 return minVal
 
             if state.isWin():
@@ -263,9 +261,9 @@ class MinimaxAgent(MultiAgentSearchAgent):
                 self.value = minValue(state)
                 return self.newAction
 
-        print(str(gameState))
+        # print(str(gameState))
         action = minimaxValue(gameState)
-        print("pacmanAgentNum", pacmanAgentNum, " ", action)
+        # print("pacmanAgentNum", pacmanAgentNum, " ", action)
 
         return action
 
@@ -301,31 +299,27 @@ class ExpectimaxAgent(MultiAgentSearchAgent):
         self.newAction = Directions.STOP
         self.numAgents = gameState.getNumAgents()
         self.legalMoves = gameState.getLegalActions(self.index)
+        values = []
 
-        def value(state, agent, depth):
+        def expactimax(state, agent, depth):
             if state.isWin() or state.isLose() or self.depth == depth:
+                # print("self.depth", self.depth, "depth", depth)   
                 return self.evaluationFunction(state)
             elif agent == 0:
-                # time.sleep(1)
                 return maxValue(state, agent, depth)
             else:
                 return expValue(state, agent, depth)
 
         def maxValue(state, agent, depth):
-            print("agent: ", agent, " in max")
-            maxVal = -1000
+            maxVal = float('-inf')
             for action in state.getLegalActions(agent):
                 successor = state.generateSuccessor(agent, action)
-                tempVal = value(successor, agent + 1, depth)
+                tempVal = expactimax(successor, agent + 1, depth)
                 if tempVal > maxVal:
-                    self.newAction = action
                     maxVal = tempVal
-            print("in max value:", maxVal, "in max depth:",
-                  depth, "with action", self.newAction)
             return maxVal
 
         def expValue(state, agent, depth):
-            print("agent: ", agent, " in exp")
             expVal = 0
             if agent + 1 == self.numAgents:
                 tempAgent = 0
@@ -335,14 +329,18 @@ class ExpectimaxAgent(MultiAgentSearchAgent):
             for action in state.getLegalActions(agent):
                 successor = state.generateSuccessor(agent, action)
                 p = 1/len(state.getLegalActions(agent))
-                expVal += p * value(successor, tempAgent, depth)
-            print("agent", agent, "in exp value:", expVal, "in exp depth:",
-                  depth, "with action", self.newAction)
+                expVal += p * expactimax(successor, tempAgent, depth)
             return expVal
         
-        print(str(gameState))
-        value(gameState, self.agent, self.depthCount)
-        return self.newAction
+        self.agent += 1
+        for action in self.legalMoves:
+            # next pacman state
+            nextState = gameState.generateSuccessor(self.index, action)   
+            # ghost state
+            currValue = expactimax(nextState, self.agent, self.depthCount)
+            values.append(currValue)
+        actionIndex = values.index(max(values))
+        return self.legalMoves[actionIndex]
 
 def betterEvaluationFunction(currentGameState):
     """
