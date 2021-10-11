@@ -80,55 +80,23 @@ class ReflexAgent(Agent):
             ghostState.scaredTimer for ghostState in newGhostStates]
 
         "*** YOUR CODE HERE ***"
-        # print("successor game state: ", successorGameState)
-        # print("new position: ", newPos)
-        # print("new food: ", newFood)
-        # print("new ghost states: ", newGhostStates)
-        # print("new scared times: ", newScaredTimes)
 
-        foodScore = 1000
-        ghostScore = -1000
         distToFood = 0
         distToGhost = 0
         newScore = successorGameState.getScore()
         for food in newFood.asList():
             if manhattanDistance(newPos, food) != 0:
                 distToFood += 1/manhattanDistance(newPos, food)
-            # if distToFood < foodScore:
-            #     foodScore = distToFood
-
-        # print("food score: ", foodScore)
 
         for state in newGhostStates:
             if manhattanDistance(newPos, state.getPosition()) != 0:
                 distToGhost += 1/manhattanDistance(newPos, state.getPosition())
-            # if distToGhost > ghostScore and distToGhost > foodScore:
-            #     ghostScore = distToGhost
-            # if distToGhost == 1:
-            #     newScore = -1000
-            #     return newScore
 
-        # print("ghost score: ", ghostScore)
         if distToFood != 0:
             newScore += distToFood
         if distToGhost != 0:
             newScore -= distToGhost
-        # newScore = (successorGameState.getScore() - (1 / ghostScore)
-        #              + 1/foodScore)
-        # print("new score: ", newScore)
-        # for cap in successorGameState.getCapsules():
-        #     distToCap = manhattanDistance(newPos, cap)
-        #     if distToCap < newScore and distToCap < foodScore:
-        #         newScore = newScore + distToCap
 
-        # for times in newScaredTimes:
-        #     if times > 0:
-        #         if ghostScore != 0:
-        #             newScore = 1/ghostScore
-
-        # if ghostScore > foodScore:
-
-        # print(newScore)
         # * newscore = w1 * distToFood + w2 * distToGhost + w3 * getScore
         return newScore
 
