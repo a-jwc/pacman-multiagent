@@ -20,7 +20,12 @@ import time
 
 from game import Agent
 
+citations = [
+    "https://web.stanford.edu/class/archive/cs/cs221/cs221.1196/assignments/pacman/index.html",
+    "https://www.youtube.com/watch?v=l-hh51ncgDI",
+]
 
+print("Citations: ", citations)
 class ReflexAgent(Agent):
     """
     A reflex agent chooses an action at each choice point by examining
@@ -290,8 +295,40 @@ def betterEvaluationFunction(currentGameState):
 
     DESCRIPTION: <write something here so we know what you did>
     """
-    "*** YOUR CODE HERE ***"
-    util.raiseNotDefined()
+    legalMoves = currentGameState.getLegalActions(0)
+    scoresList = []
+    for move in legalMoves:
+        successorGameState = currentGameState.generateSuccessor(0, move)
+        newPos = successorGameState.getPacmanPosition()
+        newFood = successorGameState.getFood()
+        newGhostStates = successorGameState.getGhostStates()
+        newScaredTimes = [
+            ghostState.scaredTimer for ghostState in newGhostStates]
+
+        distToFood = 0
+        distToGhost = 0
+        newScore = successorGameState.getScore()
+        for food in newFood.asList():
+            if manhattanDistance(newPos, food) != 0:
+                distToFood += 1/manhattanDistance(newPos, food)
+
+        for state in newGhostStates:
+            if manhattanDistance(newPos, state.getPosition()) != 0:
+                distToGhost += 1/manhattanDistance(newPos, state.getPosition())
+
+        if distToFood != 0:
+            newScore += distToFood
+        if distToGhost != 0:
+            newScore -= distToGhost
+
+        scoresList.append(newScore)
+    # print(scoresList)
+    if len(scoresList) != 0:
+        newScore = max(scoresList)
+    else: 
+        newScore = currentGameState.getScore()
+    # * newscore = w1 * distToFood + w2 * distToGhost + w3 * getScore
+    return newScore
 
 
 # Abbreviation
