@@ -85,18 +85,22 @@ class ReflexAgent(Agent):
             ghostState.scaredTimer for ghostState in newGhostStates]
 
         "*** YOUR CODE HERE ***"
-
+        
         distToFood = 0
         distToGhost = 0
         newScore = successorGameState.getScore()
+        
+        # * sum reciprocal of dist to food
         for food in newFood.asList():
             if manhattanDistance(newPos, food) != 0:
                 distToFood += 1/manhattanDistance(newPos, food)
 
+        # * sum reciprocal of dist to ghost
         for state in newGhostStates:
             if manhattanDistance(newPos, state.getPosition()) != 0:
                 distToGhost += 1/manhattanDistance(newPos, state.getPosition())
 
+        # * Redundant check
         if distToFood != 0:
             newScore += distToFood
         if distToGhost != 0:
@@ -174,6 +178,7 @@ class MinimaxAgent(MultiAgentSearchAgent):
         self.legalMoves = gameState.getLegalActions(self.index)
         values = []
 
+        # * minimax driver
         def minimax(state, agent, depth):
             if state.isWin() or state.isLose() or self.depth == depth:
                 return self.evaluationFunction(state)
@@ -182,6 +187,7 @@ class MinimaxAgent(MultiAgentSearchAgent):
             else:
                 return minValue(state, agent, depth)
 
+        # * calculate some value for pacman agent
         def maxValue(state, agent, depth):
             maxVal = float('-inf')
             for action in state.getLegalActions(agent):
@@ -191,7 +197,10 @@ class MinimaxAgent(MultiAgentSearchAgent):
                     maxVal = tempVal
             return maxVal
 
+        # * calculate some value for ghost agents
         def minValue(state, agent, depth):
+            # * if next agent is pacman, reset depth and agent
+            # * else, agent to next ghost
             if agent + 1 == self.numAgents:
                 tempAgent = 0
                 depth += 1
@@ -203,13 +212,17 @@ class MinimaxAgent(MultiAgentSearchAgent):
                 minVal = min(minVal, minimax(successor, tempAgent, depth))
             return minVal
         
+        # * set self.agent to refer to ghost
         self.agent += 1
+        
         for action in self.legalMoves:
-            # next pacman state
+            # * next pacman state
             nextState = gameState.generateSuccessor(self.index, action)   
-            # ghost state
+            # * ghost state
             currValue = minimax(nextState, self.agent, self.depthCount)
             values.append(currValue)
+        
+        # * find max in value
         actionIndex = values.index(max(values))
         return self.legalMoves[actionIndex]
 
@@ -247,6 +260,7 @@ class ExpectimaxAgent(MultiAgentSearchAgent):
         self.legalMoves = gameState.getLegalActions(self.index)
         values = []
 
+        # * expectimax driver
         def expectimax(state, agent, depth):
             if state.isWin() or state.isLose() or self.depth == depth:
                 # print("self.depth", self.depth, "depth", depth)   
@@ -255,7 +269,8 @@ class ExpectimaxAgent(MultiAgentSearchAgent):
                 return maxValue(state, agent, depth)
             else:
                 return expValue(state, agent, depth)
-
+            
+        # * calculate some value for pacman agent
         def maxValue(state, agent, depth):
             maxVal = float('-inf')
             for action in state.getLegalActions(agent):
@@ -265,6 +280,7 @@ class ExpectimaxAgent(MultiAgentSearchAgent):
                     maxVal = tempVal
             return maxVal
 
+        # * calculate some value for ghost agents
         def expValue(state, agent, depth):
             expVal = 0
             if agent + 1 == self.numAgents:
@@ -278,13 +294,18 @@ class ExpectimaxAgent(MultiAgentSearchAgent):
                 expVal += p * expectimax(successor, tempAgent, depth)
             return expVal
         
+        # * set self.agent to refer to ghost        
         self.agent += 1
+        
+
         for action in self.legalMoves:
-            # next pacman state
+            # * next pacman state
             nextState = gameState.generateSuccessor(self.index, action)   
-            # ghost state
+            # * ghost state
             currValue = expectimax(nextState, self.agent, self.depthCount)
             values.append(currValue)
+            
+        # * find max in value            
         actionIndex = values.index(max(values))
         return self.legalMoves[actionIndex]
 
@@ -297,6 +318,8 @@ def betterEvaluationFunction(currentGameState):
     """
     legalMoves = currentGameState.getLegalActions(0)
     scoresList = []
+    
+    # * Run reflex agent evaluation function for each legal pacman move
     for move in legalMoves:
         successorGameState = currentGameState.generateSuccessor(0, move)
         newPos = successorGameState.getPacmanPosition()
@@ -308,21 +331,26 @@ def betterEvaluationFunction(currentGameState):
         distToFood = 0
         distToGhost = 0
         newScore = successorGameState.getScore()
+        
+        # * sum reciprocal of dist to food
         for food in newFood.asList():
             if manhattanDistance(newPos, food) != 0:
                 distToFood += 1/manhattanDistance(newPos, food)
-
+                
+        # * sum reciprocal of dist to ghost
         for state in newGhostStates:
             if manhattanDistance(newPos, state.getPosition()) != 0:
                 distToGhost += 1/manhattanDistance(newPos, state.getPosition())
-
+                
+        # * Redundant check
         if distToFood != 0:
             newScore += distToFood
         if distToGhost != 0:
             newScore -= distToGhost
 
         scoresList.append(newScore)
-    # print(scoresList)
+    
+    # * if the scoresList is empty, return the current game state score
     if len(scoresList) != 0:
         newScore = max(scoresList)
     else: 
