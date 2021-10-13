@@ -1,0 +1,12 @@
+{
+	"folders": [
+		{
+			"path": "."
+		},
+		{
+			"path": "../search/proj1-search-python3"
+		}
+	],
+	"remoteAuthority": "wsl+ubuntu-20.04",
+	"settings": {}
+}
